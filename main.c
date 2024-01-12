@@ -33,7 +33,53 @@ cJSON* readExistingArray() {
     }
     return NULL;
 }
+void processJsonItem(cJSON* jsonItem) {
+    cJSON* list = cJSON_GetObjectItemCaseSensitive(jsonItem, "list");
+    if (cJSON_IsArray(list)) {
+        cJSON* dataArray = readExistingArray();
 
+        cJSON* listItem;
+        cJSON_ArrayForEach(listItem, list) {
+            cJSON* components = cJSON_GetObjectItemCaseSensitive(listItem, "components");
+            if (cJSON_IsObject(components)) {
+                if (cJSON_IsArray(dataArray)) {
+                    cJSON_AddItemToArray(dataArray, cJSON_Duplicate(listItem, 1));
+                } else {
+                    dataArray = cJSON_CreateArray();
+                    cJSON_AddItemToArray(dataArray, cJSON_Duplicate(listItem, 1));
+                }
+
+                // Extracting values
+                double so2 = cJSON_GetObjectItemCaseSensitive(components, "so2")->valuedouble;
+                double co = cJSON_GetObjectItemCaseSensitive(components, "co")->valuedouble;
+                double o3 = cJSON_GetObjectItemCaseSensitive(components, "o3")->valuedouble;
+                double no = cJSON_GetObjectItemCaseSensitive(components, "no")->valuedouble;
+
+                // Getting current date and time
+                time_t rawtime;
+                struct tm* timeinfo;
+                char buffer[80];
+
+                time(&rawtime);
+                timeinfo = localtime(&rawtime);
+
+                strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
+                printf("Current Date and Time: %s\n", buffer);
+
+                // Save values to a text file
+                FILE* txtFile = fopen("output.txt", "a"); // Open in append mode
+                if (txtFile != NULL) {
+                    fprintf(txtFile, "Date and Time: %s\n", buffer);
+                    fprintf(txtFile, "CO: %.2f\n", co);
+                    fprintf(txtFile, "SO2: %.2f\n", so2);
+                    fprintf(txtFile, "NO: %.2f\n", no);
+                    fprintf(txtFile, "O3: %.2f\n", o3);
+                    fprintf(txtFile, "\n");
+                    fclose(txtFile);
+                    printf("Data saved to output.txt\n");
+                } else {
+                    fprintf(stderr, "Error opening output.txt for writing\n");
+                }
 int main() {
     CURL* curl = curl_easy_init();
     if (!curl) {
