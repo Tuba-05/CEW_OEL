@@ -98,7 +98,7 @@ void processJsonItem(cJSON* jsonItem) {
                 FILE* airFile = fopen(airFilename, "w");
                 if (airFile != NULL) {
                     fprintf(airFile,"\t\t\t\t\t\t\t\t\t\t\tTHE AIR QUALITY REPORT \t\t\t\t\t\t\t\t\t\t\t\n");
-                    fprintf(airFile,"=======================================================================================================================\n");
+                    fprintf(airFile,"============================================================================================================================================================================================================================================\n");
                     fprintf(airFile, "Date and Time: %s\n", buffer);
                     fprintf(airFile, "1.SO2 Comparison Result: %d\n", so2Result);
                     fprintf(airFile, "2.NO Comparison Result: %d\n", noResult);
