@@ -1,9 +1,9 @@
 											THE AIR QUALITY REPORT 											
 =======================================================================================================================
-Date and Time: 2024-01-11 22:02:04
-1.SO2 Comparison Result: 29
-2.NO Comparison Result: 65
-3.O3 Comparison Result: 0
+Date and Time: 2024-01-13 14:43:27
+1.SO2 Comparison Result: 3
+2.NO Comparison Result: 0
+3.O3 Comparison Result: 98
 KEYWORDS:
 	SO2 = Sulphur Dioxide(range<=350)
 	NO = Nitrogen Monoxide(range: 0.1 to 100)
