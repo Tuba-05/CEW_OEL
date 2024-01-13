@@ -1,21 +1,21 @@
+#inculde "send_email.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-int main() {
-    char emailCommand[500];  // Buffer to hold the command
+void sendEmail(const char *subject, const char *body, const char *attachment) {
+    char emailCommand[1000];
 
-    // Compose the Mutt command
+    // Compose the Mutt command with attachment and variable body
     snprintf(emailCommand, sizeof(emailCommand),
-             "echo 'Your email body goes here' | mutt -s 'Subject Line' tubabintenaushad@gmail.com -e 'set content_type=text/plain'");
+             "echo '%s' | mutt -s '%s' -a %s -- tubabintenaushad@gmail.com -e 'set content_type=text/plain'",
+             body, subject, attachment);
 
-    // Execute the command using system function
+    // Execute the command using the system function
     int result = system(emailCommand);
 
     if (result == -1) {
-        printf("Failed to send the email.\n");
-        return 1;
+        fprintf(stderr, "Failed to send the email.\n");
+    } else {
+        printf("Email sent successfully.\n");
     }
-
-    printf("Email sent successfully.\n");
-    return 0;
 }
