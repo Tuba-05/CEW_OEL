@@ -10,12 +10,15 @@
 cJSON* readExistingArray() {
     FILE* file = fopen("output.json", "r");
     if (file != NULL) {
+        // Determine file size
         fseek(file, 0, SEEK_END);
         long fileSize = ftell(file);
         fseek(file, 0, SEEK_SET);
 
+        // Allocate memory to file content
         char* fileContents = malloc(fileSize + 1);
         if (fileContents != NULL) {
+            // Read file content into memory
             fread(fileContents, 1, fileSize, file);
             fclose(file);
 
@@ -33,15 +36,18 @@ cJSON* readExistingArray() {
     }
     return NULL;
 }
+// Process each item in the JSON array
 void processJsonItem(cJSON* jsonItem) {
     cJSON* list = cJSON_GetObjectItemCaseSensitive(jsonItem, "list");
     if (cJSON_IsArray(list)) {
+        // Read existing JSON array from file
         cJSON* dataArray = readExistingArray();
 
         cJSON* listItem;
         cJSON_ArrayForEach(listItem, list) {
             cJSON* components = cJSON_GetObjectItemCaseSensitive(listItem, "components");
             if (cJSON_IsObject(components)) {
+                // Add item to existing array or create a new array 
                 if (cJSON_IsArray(dataArray)) {
                     cJSON_AddItemToArray(dataArray, cJSON_Duplicate(listItem, 1));
                 } else {
