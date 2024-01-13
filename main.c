@@ -5,6 +5,7 @@
 #include "cJSON/cJSON.h"
 #include <time.h>
 #include "air_quality.h"
+#include "send_email.h"
 
 // Helper function to read existing JSON array from a file
 cJSON* readExistingArray() {
@@ -112,6 +113,9 @@ void processJsonItem(cJSON* jsonItem) {
 
                 // Check for anomalies and create anomaly.txt if any anomaly is detected
                 if (so2Result == -1 || noResult == -1 || o3Result == -1) {
+                    const char *subject = "Anomaly Detected in Air Quality";
+                    const char *body = "Anomaly detected in the Air Quality. Please take precautions";
+                    const char *attachment = "anomaly.txt";
                     FILE* anomalyFile = fopen("anomaly.txt", "w");
                     if (anomalyFile != NULL) {
                         fprintf(anomalyFile,"\t\t\t\t\t\t\t\t\t\t\tTHE AIR QUALITY REPORT \t\t\t\t\t\t\t\t\t\t\t\n");
@@ -123,6 +127,8 @@ void processJsonItem(cJSON* jsonItem) {
                         fprintf(anomalyFile,"Disclaimer: IF YOU FEEL SUFFOCATION PLEASE CONSULT TO DOCTOR");
                         fclose(anomalyFile);
                         printf("Anomaly detected. Information saved to anomaly.txt\n");
+                        // Send email notification with attachment
+                        sendEmail(subject,body,attachment);
                     } else {
                         fprintf(stderr, "Error opening anomaly.txt for writing\n");
                     }
@@ -137,7 +143,29 @@ void processJsonItem(cJSON* jsonItem) {
         fprintf(stderr, "Error: 'list' is not an array in the JSON item:\n%s\n", cJSON_Print(jsonItem));
     }
 }
+size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
+    size_t realsize = size * nmemb;
+    printf("%.*s", (int)realsize, (char*)contents);
 
+    cJSON* json = cJSON_Parse((char*)contents);
+
+    if (json != NULL) {
+        if (cJSON_IsArray(json)) {
+            cJSON* jsonItem;
+            cJSON_ArrayForEach(jsonItem, json) {
+                processJsonItem(jsonItem);
+            }
+        } else {
+            processJsonItem(json);
+        }
+
+        cJSON_Delete(json);
+    } else {
+        fprintf(stderr, "Error parsing JSON\n");
+    }
+
+    return realsize;
+}
 int main() {
     CURL* curl = curl_easy_init();
     if (!curl) {
@@ -147,17 +175,14 @@ int main() {
 
     const char* url = "http://api.openweathermap.org/data/2.5/air_pollution?lat=24.8607&lon=67.0011&appid=d485a877d60ae98bcc2131ef64c80858";
     curl_easy_setopt(curl, CURLOPT_URL, url);
-    // curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
 
     CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
     }
-
-    // Print the most recent data from output.txt, perform comparisons, save computed values, and check for anomalies
-    // printMostRecentDataAndCompare();
-
+    
     curl_easy_cleanup(curl);
 
     return 0;
